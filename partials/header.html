@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="kerli — notes, projects, photography, and things worth sharing.">
+<title>{{title}}</title>
+<link rel="icon" href="/img/favicon.svg" type="image/svg+xml">
+<link rel="alternate" type="application/rss+xml" title="kerli" href="/rss.xml">
+<link rel="stylesheet" href="/css/style.css">
+<meta property="og:site_name" content="kerli">
+<meta property="og:image" content="https://kerli.website/img/og.svg">
+<meta name="twitter:card" content="summary_large_image">
+</head>
+<body>
+<input class="theme-input" type="radio" name="theme" id="theme-dark" checked>
+<input class="theme-input" type="radio" name="theme" id="theme-light">
+<script>try{if(localStorage.getItem("kerli-theme")==="light")document.getElementById("theme-light").checked=true;}catch(e){}</script>
+<div class="page">
+<header class="site-header">
+  <a class="brand" href="/">~/kerli</a>
+  <div class="theme-toggle">
+    <label for="theme-dark">dark</label>
+    <label for="theme-light">light</label>
+  </div>
+</header>
+<script src="/js/config.js"></script>
+<script src="/js/util.js" defer></script>

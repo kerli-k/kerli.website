@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://kerli.website/sitemap.xml

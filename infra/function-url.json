@@ -1,0 +1,10 @@
+{
+  "FunctionName": "kerli-api",
+  "AuthType": "NONE",
+  "Cors": {
+    "AllowOrigins": ["*"],
+    "AllowMethods": ["GET", "POST", "DELETE", "OPTIONS"],
+    "AllowHeaders": ["Content-Type", "Authorization"],
+    "MaxAge": 86400
+  }
+}

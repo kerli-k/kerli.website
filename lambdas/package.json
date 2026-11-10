@@ -1,0 +1,11 @@
+{
+  "name": "kerli-api",
+  "version": "1.0.0",
+  "description": "kerli.website Lambda function URL",
+  "main": "index.js",
+  "engines": { "node": "20.x" },
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.600.0",
+    "@aws-sdk/lib-dynamodb": "^3.600.0"
+  }
+}

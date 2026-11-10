@@ -1,0 +1,28 @@
+<!-- title: Photography -->
+<main class="home">
+  <header class="intro page-head">
+    <p class="prompt">k@kerli:~$ <span class="prompt-path">ls ~/photos</span></p>
+    <h1>Photography</h1>
+    <p class="bio">shots I made on my phone. click any to see details and location.</p>
+  </header>
+
+  <!-- Tag filter -->
+  <nav class="filter" id="tag-filters">
+    <span class="filter-label">tag:</span>
+    <a class="tag is-active" href="photography.html" data-tag="all">all</a>
+  </nav>
+
+  <!-- Photo grid -->
+  <div class="photo-grid" id="photo-grid">
+    <p class="prompt">loading photos…</p>
+  </div>
+
+  <!-- Photo detail modal -->
+  <div class="photo-modal" id="photo-modal" hidden>
+    <div class="photo-modal-content">
+      <button class="photo-modal-close" id="modal-close">×</button>
+      <div class="photo-modal-body" id="modal-body"></div>
+    </div>
+  </div>
+</main>
+<script src="/js/gallery.js" defer></script>

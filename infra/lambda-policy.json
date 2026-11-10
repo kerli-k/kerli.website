@@ -1,0 +1,32 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "CloudWatchLogs",
+      "Effect": "Allow",
+      "Action": [
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream",
+        "logs:PutLogEvents"
+      ],
+      "Resource": "arn:aws:logs:eu-north-1:226131234328:log-group:/aws/lambda/kerli-api:*"
+    },
+    {
+      "Sid": "DynamoDBScoped",
+      "Effect": "Allow",
+      "Action": [
+        "dynamodb:GetItem",
+        "dynamodb:PutItem",
+        "dynamodb:DeleteItem",
+        "dynamodb:Scan",
+        "dynamodb:Query"
+      ],
+      "Resource": [
+        "arn:aws:dynamodb:eu-north-1:226131234328:table/kerli-posts",
+        "arn:aws:dynamodb:eu-north-1:226131234328:table/kerli-comments",
+        "arn:aws:dynamodb:eu-north-1:226131234328:table/kerli-comments-archive",
+        "arn:aws:dynamodb:eu-north-1:226131234328:table/kerli-comments/index/ip-ts-index"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+<!-- title: Recommendations -->
+<main class="home">
+  <header class="intro page-head">
+    <p class="prompt">k@kerli:~$ <span class="prompt-path">cat ~/recommendations</span></p>
+    <h1>Recommendations</h1>
+    <p class="bio">films, shows, books, tools, food — things I actually liked.</p>
+  </header>
+
+  <nav class="filter" id="type-filters">
+    <span class="filter-label">type:</span>
+    <a class="tag is-active" href="recommendations.html" data-type="all">all</a>
+  </nav>
+  <nav class="filter" id="tag-filters" style="margin-top: -4px;">
+    <span class="filter-label">tag:</span>
+    <a class="tag is-active" href="recommendations.html" data-tag="all">all</a>
+  </nav>
+
+  <div class="rec-list" id="rec-list"></div>
+</main>
+<script src="/js/recs.js" defer></script>

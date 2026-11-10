@@ -1,0 +1,16 @@
+<!-- title: Blog -->
+<main class="home">
+  <header class="intro page-head">
+    <p class="prompt">k@kerli:~$ <span class="prompt-path">ls -lt ~/blog</span></p>
+    <h1>Blog</h1>
+    <p class="bio">Notes, half-formed ideas, and my thoughts on the world.</p>
+  </header>
+  <nav class="filter" id="tag-filters" aria-label="filter by tag">
+    <span class="filter-label">tag:</span>
+    <a class="tag is-active" href="blog.html" data-tag="all">all</a>
+    <!-- JS will inject unique tags here, or you can hardcode them -->
+  </nav>
+  <div class="post-list" id="feed"></div>
+  <div class="pager" id="pager"></div>
+</main>
+<script src="/js/feed.js" defer></script>

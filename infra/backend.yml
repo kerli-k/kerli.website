@@ -1,0 +1,236 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: kerli.website backend - DynamoDB + Lambda (no S3/CloudFront)
+
+Parameters:
+  SiteOrigin:
+    Type: String
+    Default: https://kerli.website
+    Description: Used for CORS and absolute links
+  AdminSecret:
+    Type: String
+    NoEcho: true
+    MinLength: 16
+    Description: Bearer token for admin endpoints
+  IamSalt:
+    Type: String
+    NoEcho: true
+    MinLength: 16
+    Description: Salt for hashing submitter IPs
+  SpamBlacklist:
+    Type: String
+    Default: ""
+    Description: Comma-separated spam words (optional)
+  HCaptchaSecret:
+    Type: String
+    Default: ""
+    NoEcho: true
+    Description: hCaptcha secret (optional)
+
+Resources:
+  PostsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: kerli-posts
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      Tags:
+        - Key: project
+          Value: kerli
+
+  CommentsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: kerli-comments
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: postId
+          AttributeType: S
+        - AttributeName: id
+          AttributeType: S
+        - AttributeName: ip
+          AttributeType: S
+        - AttributeName: ts
+          AttributeType: N
+      KeySchema:
+        - AttributeName: postId
+          KeyType: HASH
+        - AttributeName: id
+          KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: ip-ts-index
+          KeySchema:
+            - AttributeName: ip
+              KeyType: HASH
+            - AttributeName: ts
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+      Tags:
+        - Key: project
+          Value: kerli
+
+  ArchiveTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: kerli-comments-archive
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: postId
+          AttributeType: S
+        - AttributeName: id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: postId
+          KeyType: HASH
+        - AttributeName: id
+          KeyType: RANGE
+      Tags:
+        - Key: project
+          Value: kerli
+
+  ApiFunctionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: kerli-api-lambda-role
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns: []
+      Policies:
+        - PolicyName: CloudWatchLogs
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/kerli-api:*"
+        - PolicyName: DynamoDBScoped
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - dynamodb:GetItem
+                  - dynamodb:PutItem
+                  - dynamodb:DeleteItem
+                  - dynamodb:Scan
+                  - dynamodb:Query
+                Resource:
+                  - !GetAtt PostsTable.Arn
+                  - !GetAtt CommentsTable.Arn
+                  - !GetAtt ArchiveTable.Arn
+                  - !Sub "${CommentsTable.Arn}/index/ip-ts-index"
+      Tags:
+        - Key: project
+          Value: kerli
+
+  ApiFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: kerli-api
+      Runtime: nodejs20.x
+      Handler: index.handler
+      Role: !GetAtt ApiFunctionRole.Arn
+      ReservedConcurrentExecutions: 10
+      Timeout: 10
+      MemorySize: 256
+      Environment:
+        Variables:
+          POSTS_TABLE: !Ref PostsTable
+          COMMENTS_TABLE: !Ref CommentsTable
+          ARCHIVE_TABLE: !Ref ArchiveTable
+          SITE_ORIGIN: !Ref SiteOrigin
+          ADMIN_SECRET: !Ref AdminSecret
+          IP_SALT: !Ref IamSalt
+          SPAM_BLACKLIST: !Ref SpamBlacklist
+          HCAPTCHA_SECRET: !Ref HCaptchaSecret
+          COMMENT_TTL_DAYS: "7"
+          RATE_WINDOW_MS: "3600000"
+          RATE_MAX: "5"
+          COMMENT_MAX: "1000"
+          NAME_MAX: "60"
+          TITLE_MAX: "200"
+          HTML_MAX: "100000"
+          PAGE_SIZE: "10"
+      Code:
+        ZipFile: |
+          exports.handler = async () => ({statusCode:200,body:"deploy me"});
+      Tags:
+        - Key: project
+          Value: kerli
+
+  ApiFunctionUrl:
+    Type: AWS::Lambda::Url
+    Properties:
+      AuthType: NONE
+      TargetFunctionArn: !Ref ApiFunction
+      Cors:
+        AllowOrigins:
+          - !Ref SiteOrigin
+        AllowMethods:
+          - GET
+          - POST
+          - DELETE
+          - OPTIONS
+        AllowHeaders:
+          - Content-Type
+          - Authorization
+        MaxAge: "86400"
+
+  ApiFunctionUrlPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref ApiFunction
+      Action: lambda:InvokeFunctionUrl
+      Principal: "*"
+      FunctionUrlAuthType: NONE
+
+  LambdaErrorAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: kerli-api-errors
+      MetricName: Errors
+      Namespace: AWS/Lambda
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref ApiFunction
+
+  LambdaThrottleAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: kerli-api-throttles
+      MetricName: Throttles
+      Namespace: AWS/Lambda
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref ApiFunction
+
+Outputs:
+  ApiUrl:
+    Description: Lambda function URL
+    Value: !GetAtt ApiFunctionUrl.FunctionUrl

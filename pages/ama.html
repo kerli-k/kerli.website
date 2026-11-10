@@ -1,0 +1,30 @@
+<!-- title: Ask Me Anything -->
+<main class="home">
+  <header class="intro page-head">
+    <p class="prompt">k@kerli:~$ <span class="prompt-path">write --to kerli --anonymous</span></p>
+    <h1>Ask Me Anything</h1>
+    <p class="bio">leave a question for me to answer! keep in mind they don't show up immediately and have to be approved by me first. quick faq: the capital of france is paris. no this is not based on verity. goodbye.</p>
+  </header>
+  <div id="ama-root" data-post-id="ama"></div>
+  <p class="back-link"><a href="archive.html">view archived notes →</a></p>
+
+  <section class="notes-section" id="comments">
+    <div id="comment-list" class="notes"></div>
+    <form id="comment-form" class="ask-form">
+  <label class="field"><span class="field-label">name (optional)</span>
+    <input type="text" name="name" placeholder="anon"></label>
+  <label class="field"><span class="field-label">message</span>
+    <textarea name="text" rows="4" required></textarea></label>
+
+  <!-- honeypot: hidden from humans, bots fill it -->
+  <input type="text" name="website" tabindex="-1" autocomplete="off"
+         style="position:absolute;left:-9999px" aria-hidden="true">
+  <!-- time-trap timestamp -->
+  <input type="hidden" name="ts" id="ts">
+
+  <button class="btn" type="submit">send note →</button>
+  <p class="form-status" id="form-status" aria-live="polite"></p>
+</form>
+  </section>
+</main>
+<script src="/js/post.js" defer></script>

@@ -1,0 +1,108 @@
+<!-- title: admin -->
+<main class="home">
+  <header class="intro page-head">
+    <p class="prompt">k@kerli:~$ <span class="prompt-path">sudo kerli-admin</span></p>
+    <h1>Admin</h1>
+  </header>
+
+  <div id="auth-box" class="ask-form">
+    <label class="field"><span class="field-label">password</span>
+      <input type="password" id="pw" autocomplete="current-password"></label>
+    <button class="btn" id="login-btn">unlock →</button>
+  </div>
+
+  <div id="panel" hidden>
+    <p class="bio">
+      Choose a content type, fill the form, and publish. Existing items can be edited or deleted from the list below.
+    </p>
+
+    <section class="admin-section">
+      <h2 class="prompt">k@kerli:~$ <span class="prompt-path">new post</span></h2>
+      <div class="ask-form">
+        <label class="field"><span class="field-label">id (optional — use `ama` for the AMA post)</span>
+          <input type="text" id="p-id" placeholder="leave blank to auto-generate"></label>
+
+        <label class="field"><span class="field-label">content type</span>
+          <select id="p-type" class="ask-input">
+            <option value="blog">blog</option>
+            <option value="project">project</option>
+            <option value="rec">recommendation</option>
+            <option value="photo">photography</option>
+          </select>
+        </label>
+
+        <label class="field"><span class="field-label">title</span>
+          <input type="text" id="p-title"></label>
+
+        <label class="field"><span class="field-label">tags (comma separated)</span>
+          <input type="text" id="p-tags" placeholder="web, notes"></label>
+
+        <!-- blog -->
+        <div class="type-fields" data-type="blog">
+          <label class="field"><span class="field-label">content (raw HTML)</span>
+            <textarea id="p-html" rows="12" placeholder="<p>write HTML here…</p>"></textarea></label>
+          <label class="field"><span class="field-label"><input type="checkbox" id="p-hidden"> hidden (don't show in feed)</span></label>
+        </div>
+
+        <!-- project -->
+        <div class="type-fields" data-type="project" hidden>
+          <label class="field"><span class="field-label">year</span>
+            <input type="text" id="p-year" placeholder="2026"></label>
+          <label class="field"><span class="field-label">summary</span>
+            <input type="text" id="p-summary" placeholder="one-line summary"></label>
+          <label class="field"><span class="field-label">description</span>
+            <textarea id="p-description" rows="6" placeholder="full project description"></textarea></label>
+          <label class="field"><span class="field-label">source url</span>
+            <input type="text" id="p-source" placeholder="https://github.com/..."></label>
+          <label class="field"><span class="field-label"><input type="checkbox" id="p-show-source"> show source link</span></label>
+        </div>
+
+        <!-- rec -->
+        <div class="type-fields" data-type="rec" hidden>
+          <label class="field"><span class="field-label">type (film, book, tool, food...)</span>
+            <input type="text" id="p-rec-type" placeholder="film"></label>
+          <label class="field"><span class="field-label">year</span>
+            <input type="text" id="p-rec-year" placeholder="2020"></label>
+          <label class="field"><span class="field-label">rating (0-10)</span>
+            <input type="number" id="p-rating" min="0" max="10" step="1" placeholder="8"></label>
+          <label class="field"><span class="field-label">image url</span>
+            <input type="text" id="p-rec-image" placeholder="/img/mrrobot.jpg"></label>
+          <label class="field"><span class="field-label">review</span>
+            <textarea id="p-review" rows="6" placeholder="why you recommend it"></textarea></label>
+        </div>
+
+        <!-- photo -->
+        <div class="type-fields" data-type="photo" hidden>
+          <label class="field"><span class="field-label">image url</span>
+            <input type="text" id="p-photo-image" placeholder="/img/photos/sunset.jpg"></label>
+          <label class="field"><span class="field-label">description</span>
+            <textarea id="p-photo-desc" rows="4"></textarea></label>
+          <label class="field"><span class="field-label">latitude</span>
+            <input type="number" id="p-lat" step="any" placeholder="46.8523"></label>
+          <label class="field"><span class="field-label">longitude</span>
+            <input type="number" id="p-lon" step="any" placeholder="6.2341"></label>
+          <label class="field"><span class="field-label">zoom</span>
+            <input type="number" id="p-zoom" min="1" max="20" step="1" placeholder="15"></label>
+          <label class="field"><span class="field-label">date</span>
+            <input type="date" id="p-photo-date"></label>
+        </div>
+
+        <button class="btn" id="publish-btn">publish →</button>
+        <p class="form-status" id="pub-status" aria-live="polite"></p>
+      </div>
+    </section>
+
+    <section class="admin-section">
+      <h2 class="prompt">k@kerli:~$ <span class="prompt-path">ls posts</span></h2>
+      <div id="post-list"></div>
+    </section>
+
+    <section class="admin-section">
+      <h2 class="prompt">k@kerli:~$ <span class="prompt-path">moderate stickers</span></h2>
+      <p class="bio">Pick the AMA post to moderate:</p>
+      <select id="ama-select" class="ask-input"></select>
+      <div id="sticker-list"></div>
+    </section>
+  </div>
+</main>
+<script src="/js/admin.js" defer></script>
