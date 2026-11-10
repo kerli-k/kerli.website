@@ -254,6 +254,7 @@ photography - folder-based gallery
 }
 
 /* Photo modal */
+.photo-modal[hidden] { display: none; }
 .photo-modal {
   position: fixed;
   top: 0;
