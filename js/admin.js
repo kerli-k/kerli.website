@@ -9,7 +9,7 @@ function authHeaders() {
 
 $("login-btn").addEventListener("click", async () => {
   TOKEN = $("pw").value.trim();
-  const res = await fetch(`${API}/posts?admin=1`, { headers: authHeaders() });
+  const res = await fetch(`${API}/posts?admin=1&limit=500`, { headers: authHeaders() });
   if (res.status === 401) { alert("wrong password"); TOKEN = ""; return; }
   sessionStorage.setItem("kerli-token", TOKEN);
   unlock();
@@ -105,7 +105,7 @@ function clearForm() {
 }
 
 async function loadPosts() {
-  const res = await fetch(`${API}/posts?admin=1`, { headers: authHeaders() });
+  const res = await fetch(`${API}/posts?admin=1&limit=500`, { headers: authHeaders() });
   if (res.status === 401) { sessionStorage.removeItem("kerli-token"); location.reload(); return; }
   const { items } = await res.json();
   $("post-list").innerHTML = items.map(p => `
@@ -171,7 +171,7 @@ $("publish-btn").addEventListener("click", async () => {
 
 /* ---- stickers / comments moderation ---- */
 async function loadAmaOptions() {
-  const res = await fetch(`${API}/posts?admin=1`, { headers: authHeaders() });
+  const res = await fetch(`${API}/posts?admin=1&limit=500`, { headers: authHeaders() });
   const { items } = await res.json();
   const sel = $("ama-select");
   sel.innerHTML = items.map(p => `<option value="${p.id}">${escapeHtml(p.title)}</option>`).join("");

@@ -4,7 +4,7 @@ async function loadProjects() {
   const list = document.getElementById('proj-list');
   list.innerHTML = '<p class="prompt">loading projects...</p>';
   try {
-    const res = await fetch(`${API}/posts?type=project`);
+    const res = await fetch(`${API}/posts?type=project&limit=500`);
     if (!res.ok) throw new Error(res.status);
     const data = await res.json();
     const items = data.items || [];

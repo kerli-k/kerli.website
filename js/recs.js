@@ -11,7 +11,7 @@ let activeTag = 'all';
 async function loadRecs() {
   list.innerHTML = '<p class="prompt">loading recommendations...</p>';
   try {
-    const res = await fetch(`${API}/posts?type=rec`);
+    const res = await fetch(`${API}/posts?type=rec&limit=500`);
     if (!res.ok) throw new Error(res.status);
     const json = await res.json();
     data = json.items || [];

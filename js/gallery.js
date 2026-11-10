@@ -6,7 +6,7 @@ let activeTag = 'all';
 async function loadGallery() {
   const grid = document.getElementById('photo-grid');
   try {
-    const res = await fetch(`${API}/posts?type=photo`);
+    const res = await fetch(`${API}/posts?type=photo&limit=500`);
     if (!res.ok) throw new Error(res.status);
     const data = await res.json();
     allPhotos = (data.items || []).map(p => ({

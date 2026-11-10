@@ -118,6 +118,7 @@ exports.handler = async (event) => {
     if (path === "/posts" && method === "GET") {
       const admin = qs.admin === "1" && isAuthed(event);
       const page = Math.max(1, parseInt(qs.page, 10) || 1);
+      const pageSize = Math.min(500, Math.max(1, parseInt(qs.limit, 10) || PAGE_SIZE));
       const tag = (qs.tag || "").trim();
       const type = (qs.type || "").trim();
       const res = await db.send(new ScanCommand({ TableName: POSTS }));
@@ -127,9 +128,9 @@ exports.handler = async (event) => {
       if (tag && tag !== "all") items = items.filter(p => (p.tags || []).includes(tag));
       items.sort((a, b) => (b.date || "").localeCompare(a.date || ""));
       const tags = collectTags(items);
-      const start = (page - 1) * PAGE_SIZE;
-      const paged = items.slice(start, start + PAGE_SIZE);
-      return ok({ items: paged, hasMore: items.length > start + PAGE_SIZE, tags });
+      const start = (page - 1) * pageSize;
+      const paged = items.slice(start, start + pageSize);
+      return ok({ items: paged, hasMore: items.length > start + pageSize, tags });
     }
 
     if (path.startsWith("/posts/") && method === "GET") {
