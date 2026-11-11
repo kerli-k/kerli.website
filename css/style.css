@@ -124,6 +124,8 @@ NEW: DYNAMIC COMPONENTS (Blog, Recs, Forms)
 .rec { display: grid; grid-template-columns: 88px 1fr; gap: 16px; padding: 18px 10px; border-bottom: 1px solid var(--border); transition: background .15s; }
 .rec:hover { background: var(--surface-hover); }
 .rec-thumb img { display: block; width: 88px; height: 117px; object-fit: cover; border: 1px solid var(--border); }
+.rec.no-thumb { grid-template-columns: 1fr; }
+.rec-body { min-width: 0; }
 .rec-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px 16px; flex-wrap: wrap; }
 .rec-title { margin: 0; font-size: 15px; font-weight: 600; }
 .rec-rating { display: inline-flex; align-items: center; gap: 8px; }
@@ -434,6 +436,22 @@ photography - folder-based gallery
 .proj-desc { margin: 0 0 12px; font-size: 14px; }
 .proj-source a { color: var(--amber); text-decoration: none; }
 .proj-source a:hover { text-decoration: underline; }
+
+/* Reactions */
+.reactions { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0 0; }
+.reaction {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 8px; border: 1px solid var(--border); background: none;
+  color: var(--muted); font: inherit; font-size: 12px; cursor: pointer;
+  transition: background .15s ease, border-color .15s ease, color .15s ease;
+}
+.reaction:hover { border-color: var(--amber); color: var(--text); background: var(--surface-hover); }
+.reaction.is-active { border-color: var(--amber); color: var(--amber); }
+.reaction:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+.reaction-emoji { font-size: 14px; line-height: 1; }
+.reaction-count { min-width: 1ch; }
+.reactions.is-busy { opacity: .6; pointer-events: none; }
+.note .reactions { margin-top: 10px; }
 
 /* Threaded comments */
 .comment-thread { display: flex; flex-direction: column; gap: 0; }

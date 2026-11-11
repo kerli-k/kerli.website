@@ -28,7 +28,7 @@ async function loadFeed(page = 1, tag = 'all') {
     renderTagFilters(data.tags, tag);
 
     feed.innerHTML = data.items.map(p => `
-      <article class="post">
+      <article class="post" data-id="${escapeHtml(p.id)}">
         <div class="post-top">
           <time class="post-date">${escapeHtml(p.date ? p.date.slice(0, 10) : '')}</time>
           <span class="post-tags">${(p.tags || []).map(t =>
@@ -39,6 +39,10 @@ async function loadFeed(page = 1, tag = 'all') {
         ${p.excerpt ? `<p class="post-body">${escapeHtml(p.excerpt)}</p>` : `<p class="post-body">${escapeHtml(stripHtml(p.html).slice(0, 160))}${stripHtml(p.html).length > 160 ? '…' : ''}</p>`}
       </article>
     `).join('') || '<p class="empty">grep: 0 matches.</p>';
+
+    feed.querySelectorAll('.post[data-id]').forEach(el => {
+      el.appendChild(window.createReactionBar(el.dataset.id, "post"));
+    });
 
     pager.innerHTML = `
       ${page > 1 ? `<a class="pager-link" href="?page=${page - 1}&tag=${encodeURIComponent(tag)}">&lt; prev</a>` : '<span class="pager-off">&lt; prev</span>'}

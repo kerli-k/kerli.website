@@ -18,12 +18,15 @@ const db = DynamoDBDocumentClient.from(client);
 const POSTS = process.env.POSTS_TABLE || "kerli-posts";
 const COMMENTS = process.env.COMMENTS_TABLE || "kerli-comments";
 const ARCHIVE = process.env.ARCHIVE_TABLE || "kerli-comments-archive";
+const REACTIONS = process.env.REACTIONS_TABLE || "kerli-reactions";
 const ORIGIN = process.env.SITE_ORIGIN || "*";
 const SECRET = process.env.ADMIN_SECRET || "";
 const IP_SALT = process.env.IP_SALT || "";
 const TTL_DAYS = Number(process.env.COMMENT_TTL_DAYS || "7");
 const RATE_WINDOW_MS = Number(process.env.RATE_WINDOW_MS || "3600000");
 const RATE_MAX = Number(process.env.RATE_MAX || "5");
+const REACTION_RATE_MAX = Number(process.env.REACTION_RATE_MAX || "60");
+const REACTIONS_ALLOWED = ["like", "love", "laugh", "fire", "think"];
 const COMMENT_MAX = Number(process.env.COMMENT_MAX || "1000");
 const NAME_MAX = Number(process.env.NAME_MAX || "60");
 const TITLE_MAX = Number(process.env.TITLE_MAX || "200");
@@ -163,7 +166,9 @@ exports.handler = async (event) => {
       }));
       for (const c of (cs.Items || [])) {
         await db.send(new DeleteCommand({ TableName: COMMENTS, Key: { postId: id, id: c.id } }));
+        await deleteReactionsFor(c.id);
       }
+      await deleteReactionsFor(id);
       return ok({ deleted: id });
     }
 
@@ -268,7 +273,59 @@ exports.handler = async (event) => {
       const id = qs.id;
       if (!postId || !id) return fail(400, "missing params");
       await db.send(new DeleteCommand({ TableName: COMMENTS, Key: { postId, id } }));
+      await deleteReactionsFor(id);
       return ok({ deleted: id });
+    }
+
+    /* ---- REACTIONS ---- */
+    if (path === "/reactions" && method === "GET") {
+      const targetId = String(qs.targetId || "").slice(0, 100);
+      if (!targetId) return fail(400, "missing targetId");
+      const clientId = String(qs.clientId || "").slice(0, 64);
+      const counts = await getReactionCounts(targetId);
+      let mine = null;
+      if (clientId) {
+        const g = await db.send(new GetCommand({ TableName: REACTIONS, Key: { targetId, clientId } }));
+        mine = g.Item?.reaction || null;
+      }
+      return ok({ counts, mine });
+    }
+
+    if (path === "/reactions" && method === "POST") {
+      const b = parseBody(event);
+      const targetId = String(b.targetId || "").slice(0, 100);
+      const targetType = String(b.targetType || "post");
+      const reaction = String(b.reaction || "");
+      const clientId = String(b.clientId || "").replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 64);
+      if (!targetId || !clientId) return fail(400, "missing targetId or clientId");
+      if (!REACTIONS_ALLOWED.includes(reaction)) return fail(400, "invalid reaction");
+      if (!(await targetIsPublic(targetId, targetType, b.postId))) return fail(404, "not found");
+
+      const rawIp = event.requestContext?.http?.sourceIp || "unknown";
+      const ip = hashIp(rawIp);
+      const cutoff = Date.now() - RATE_WINDOW_MS;
+      const recent = await db.send(new QueryCommand({
+        TableName: REACTIONS,
+        IndexName: "ip-ts-index",
+        KeyConditionExpression: "ip = :ip AND ts > :cutoff",
+        ExpressionAttributeValues: { ":ip": ip, ":cutoff": cutoff }
+      }));
+      if ((recent.Items || []).length >= REACTION_RATE_MAX) return fail(429, "too many reactions, slow down");
+
+      const key = { targetId, clientId };
+      const existing = await db.send(new GetCommand({ TableName: REACTIONS, Key: key }));
+      let mine;
+      if (existing.Item?.reaction === reaction) {
+        await db.send(new DeleteCommand({ TableName: REACTIONS, Key: key }));
+        mine = null;
+      } else {
+        await db.send(new PutCommand({
+          TableName: REACTIONS,
+          Item: { ...key, reaction, targetType, ip, ts: Date.now() }
+        }));
+        mine = reaction;
+      }
+      return ok({ counts: await getReactionCounts(targetId), mine });
     }
 
     return fail(404, "not found");
@@ -296,6 +353,49 @@ function collectTags(posts) {
   const set = new Set();
   for (const p of posts) (p.tags || []).forEach(t => set.add(t));
   return Array.from(set).sort();
+}
+
+async function targetIsPublic(targetId, targetType, postId) {
+  if (targetType === "post") {
+    const p = await db.send(new GetCommand({ TableName: POSTS, Key: { id: targetId } }));
+    return !!p.Item && (!p.Item.hidden || p.Item.id === "ama");
+  }
+  if (targetType === "comment") {
+    if (!postId) return false;
+    const c = await db.send(new GetCommand({
+      TableName: COMMENTS,
+      Key: { postId: String(postId).slice(0, 100), id: targetId }
+    }));
+    return !!c.Item && c.Item.status === "approved";
+  }
+  return false;
+}
+
+async function getReactionCounts(targetId) {
+  const counts = Object.fromEntries(REACTIONS_ALLOWED.map(r => [r, 0]));
+  const res = await db.send(new QueryCommand({
+    TableName: REACTIONS,
+    KeyConditionExpression: "targetId = :t",
+    ExpressionAttributeValues: { ":t": targetId }
+  }));
+  for (const item of (res.Items || [])) {
+    if (counts[item.reaction] !== undefined) counts[item.reaction]++;
+  }
+  return counts;
+}
+
+async function deleteReactionsFor(targetId) {
+  const res = await db.send(new QueryCommand({
+    TableName: REACTIONS,
+    KeyConditionExpression: "targetId = :t",
+    ExpressionAttributeValues: { ":t": targetId }
+  }));
+  for (const item of (res.Items || [])) {
+    await db.send(new DeleteCommand({
+      TableName: REACTIONS,
+      Key: { targetId: item.targetId, clientId: item.clientId }
+    }));
+  }
 }
 
 function matchesType(post, type) {

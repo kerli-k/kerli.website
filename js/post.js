@@ -14,6 +14,8 @@ async function init() {
   const ts = document.getElementById('ts');
   if (ts) ts.value = Date.now();
 
+  if (isAma) isAma.appendChild(window.createReactionBar('ama', 'post'));
+
   const pc = document.getElementById('post-content');
   if (pc) {
     try {
@@ -25,6 +27,7 @@ async function init() {
         <p class="post-meta"><time>${escapeHtml(post.date ? post.date.slice(0, 10) : '')}</time></p>
         ${post.html || ''}
       `;
+      pc.appendChild(window.createReactionBar(postId, "post"));
     } catch (e) {
       pc.innerHTML = '<p class="empty">error: post not found.</p>';
     }
@@ -111,6 +114,8 @@ function renderComment(c, isAma) {
   const replyBtn = el.querySelector('[data-reply]');
   const replyContainer = el.querySelector('.reply-form');
   const childrenContainer = el.querySelector('.comment-children');
+
+  replyBtn.parentNode.insertBefore(window.createReactionBar(c.id, "comment", c.postId), replyBtn);
 
   replyBtn.addEventListener('click', () => {
     if (replyContainer.hasChildNodes()) {

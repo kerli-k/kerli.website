@@ -48,7 +48,7 @@ function render() {
   );
 
   list.innerHTML = filtered.map(r => `
-    <article class="rec">
+    <article class="rec ${r.image ? '' : 'no-thumb'}" data-id="${escapeHtml(r.id)}">
       ${r.image ? `<div class="rec-thumb"><img src="${escapeHtml(r.image)}" alt="" loading="lazy"></div>` : ''}
       <div class="rec-body">
         <div class="rec-head">
@@ -67,6 +67,11 @@ function render() {
       </div>
     </article>
   `).join('') || '<p class="empty">grep: 0 matches.</p>';
+
+  list.querySelectorAll('.rec[data-id]').forEach(el => {
+    const body = el.querySelector('.rec-body') || el;
+    body.appendChild(window.createReactionBar(el.dataset.id, "post"));
+  });
 
   document.querySelectorAll('#type-filters .tag').forEach(el => el.classList.toggle('is-active', el.dataset.type === activeType));
   document.querySelectorAll('#tag-filters .tag').forEach(el => el.classList.toggle('is-active', el.dataset.tag === activeTag));

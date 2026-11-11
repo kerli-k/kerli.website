@@ -96,6 +96,38 @@ Resources:
         - Key: project
           Value: kerli
 
+  ReactionsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: kerli-reactions
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: targetId
+          AttributeType: S
+        - AttributeName: clientId
+          AttributeType: S
+        - AttributeName: ip
+          AttributeType: S
+        - AttributeName: ts
+          AttributeType: N
+      KeySchema:
+        - AttributeName: targetId
+          KeyType: HASH
+        - AttributeName: clientId
+          KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: ip-ts-index
+          KeySchema:
+            - AttributeName: ip
+              KeyType: HASH
+            - AttributeName: ts
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      Tags:
+        - Key: project
+          Value: kerli
+
   ApiFunctionRole:
     Type: AWS::IAM::Role
     Properties:
@@ -134,7 +166,9 @@ Resources:
                   - !GetAtt PostsTable.Arn
                   - !GetAtt CommentsTable.Arn
                   - !GetAtt ArchiveTable.Arn
+                  - !GetAtt ReactionsTable.Arn
                   - !Sub "${CommentsTable.Arn}/index/ip-ts-index"
+                  - !Sub "${ReactionsTable.Arn}/index/ip-ts-index"
       Tags:
         - Key: project
           Value: kerli
@@ -154,6 +188,7 @@ Resources:
           POSTS_TABLE: !Ref PostsTable
           COMMENTS_TABLE: !Ref CommentsTable
           ARCHIVE_TABLE: !Ref ArchiveTable
+          REACTIONS_TABLE: !Ref ReactionsTable
           SITE_ORIGIN: !Ref SiteOrigin
           ADMIN_SECRET: !Ref AdminSecret
           IP_SALT: !Ref IamSalt

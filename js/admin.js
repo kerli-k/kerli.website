@@ -171,12 +171,11 @@ $("publish-btn").addEventListener("click", async () => {
 
 /* ---- stickers / comments moderation ---- */
 async function loadAmaOptions() {
-  const res = await fetch(`${API}/posts?admin=1&limit=500`, { headers: authHeaders() });
-  const { items } = await res.json();
   const sel = $("ama-select");
-  sel.innerHTML = items.map(p => `<option value="${p.id}">${escapeHtml(p.title)}</option>`).join("");
-  if (items.length) loadStickers(items[0].id);
-  sel.onchange = () => loadStickers(sel.value);
+  sel.innerHTML = '<option value="ama">Ask Me Anything</option>';
+  sel.value = "ama";
+  sel.onchange = null;
+  await loadStickers("ama");
 }
 
 function renderModComment(c, postId) {

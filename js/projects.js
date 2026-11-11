@@ -57,13 +57,15 @@ function renderProject(p) {
   };
 
   article.addEventListener('click', (e) => {
-    if (e.target.closest('a')) return;
+    if (e.target.closest('a, button, .reactions')) return;
     toggle();
   });
   article.addEventListener('keydown', (e) => {
+    if (e.target.closest('button, a, .reactions')) return;
     if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); }
   });
 
+  article.appendChild(window.createReactionBar(p.id, "post"));
   return article;
 }
 

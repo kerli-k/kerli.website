@@ -137,6 +137,7 @@ function openPhotoModal(photoId) {
     </div>
   `;
 
+  body.querySelector('.photo-detail-info').appendChild(window.createReactionBar(photo.id, "post"));
   modal.hidden = false;
   document.body.style.overflow = 'hidden';
 }
